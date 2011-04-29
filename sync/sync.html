@@ -1,0 +1,99 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>同步目录下的所有文件</title>
+        <script src="js/IF_ajax.js" type="text/javascript"></script>
+        <style type="text/css">
+            body {margin-left:20px;}
+            .div_1, .div_2 {
+                line-height:28px;
+            }
+            .div_1 input {width:400px}
+        </style>
+    </head>
+    <body>
+        <div class="div_1">源目录：<input type="text" id="dir" style="margin-left:20px;"/>&nbsp;&nbsp;(绝对地址)</div>
+        <div class="div_1">URL：<input type="text" id="url" style="margin-left:43px;"/>&nbsp;&nbsp;(定位到上面的目录)</div>
+        <div class="div_1">帐号：<input type="text" id="cid" style="margin-left:34px;">&nbsp;&nbsp;(同步的帐号)</div>
+        <div class="div_1">目的目录：<input type="text" id="to"/>&nbsp;&nbsp;(同步到服务器上的目录)</div>
+        <div class="div_2"><input type="button" value=" 同步目录 " onclick="readdir()"></div>
+        <div id="dir_li">
+        </div>
+        <script type="text/javascript">
+            var div_li_dom = 0;
+            var dir_dom    = 0;
+            var url_dom    = 0;
+            var cid_dom    = 0;
+            var to_dom     = 0;
+            /**
+             * 根据ID获得对象
+             */
+            function G(val) {
+                return document.getElementById(val);
+            }
+            /**
+             * 根据Tag获得对象
+             */
+            function GTAG(val, dom) {
+                dom = typeof (dom) == 'object' ? dom : window.document;
+                return dom.getElementsByTagName(val);
+            }
+            /**
+             * 读取目录
+             */
+            function readdir() {
+                if (dir_dom == 0) {
+                    dir_dom = G('dir');
+                }
+                if (div_li_dom == 0) {
+                    div_li_dom = G('dir_li');
+                }
+                if (url_dom == 0) {
+                    url_dom = G('url');
+                }
+                if (cid_dom == 0) {
+                    cid_dom = G('cid');
+                }
+                if (to_dom == 0) {
+                    to_dom = G('to');
+                }
+                dir_val = dir_dom.value;
+                url_val = url_dom.value;
+                cid_val = cid_dom.value;
+                to_val  = to_dom.value;
+                if (dir_val && url_val && cid_val && to_val) {
+                    IF_ajax.request({
+                            url:'syncDir.php',
+                            dataType:'json',
+                            data:{'dir':dir_val, 'fileurl': url_val, 'cid': cid_val, 'filepath': to_val},
+                            success:function(ret) {
+                                show_list(ret);
+                            }});
+                } else {
+                    alert('源目录不能为空!');
+                }
+            }
+            /**
+             * 显示列表
+             */
+            function show_list(data) {
+                var div_str = '';
+                for (var k in data) {
+                    /*
+                    if (k != 'depth' && k != 'dirname') {
+                        var short_dir = data['dirname'].replace(dir_val, 'b_');
+                        short_dir = short_dir.replace('/', '_');
+                        var div_str = '<div>';
+                        div_str .= '<input type="checkbox" value="'+data[k]+'"';
+                    }*/
+                    if (data[k][0]) {
+                        show_list(data[k]);
+                    } else {
+                        div_str += '<div>'+data[k].dir+'&nbsp;&nbsp;'+data[k].url+'&nbsp;&nbsp;'+data[k].status+'</div>';
+                    }
+                }
+                div_li_dom.innerHTML = div_str;
+            }
+        </script>
+    </body>
+</html>
